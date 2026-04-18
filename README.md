@@ -91,21 +91,31 @@ http://127.0.0.1:8000
 
 #### Health Check
 
-GET /health
+### 🌐 API Endpoints
 
+---
 
-Response:
+### 🔹 Health Check
+
+**GET** `/health`
+
+#### Response:
 ```json
 {
   "status": "ok",
   "model_loaded": true,
   "model_version": "v1"
 }
-Single Prediction
-POST /predict
+```
 
-Request Body:
+---
 
+### 🔹 Single Prediction
+
+**POST** `/predict`
+
+#### Request Body:
+```json
 {
   "passenger_count": 1,
   "trip_distance": 1,
@@ -115,54 +125,78 @@ Request Body:
   "trip_duration_minutes": 5,
   "trip_speed_mph": 12,
   "pickup_hour": 23,
-  "pickup_day_of_week": "Monday",
+  "pickup_day_of_week": "Mon",
   "is_weekend": true
 }
+```
 
-Response:
-
+#### Response:
+```json
 {
   "prediction": 0.24,
   "model_version": "v1",
   "prediction_id": "uuid"
 }
-Batch Prediction
-POST /predict/batch
+```
 
-Request Body:
+---
 
-[
-  {
-    "passenger_count": 1,
-    "trip_distance": 1,
-    "fare_amount": 10,
-    "total_amount": 12,
-    "payment_type": 1,
-    "trip_duration_minutes": 5,
-    "trip_speed_mph": 12,
-    "pickup_hour": 23,
-    "pickup_day_of_week": "Monday",
-    "is_weekend": true
-  },
-  {
-    "passenger_count": 2,
-    "trip_distance": 5,
-    "fare_amount": 30,
-    "total_amount": 35,
-    "payment_type": 1,
-    "trip_duration_minutes": 15,
-    "trip_speed_mph": 20,
-    "pickup_hour": 18,
-    "pickup_day_of_week": "Friday",
-    "is_weekend": false
-  }
-]
+### 🔹 Batch Prediction
+
+**POST** `/predict/batch`
+
+#### Request Body:
+```json
+{
+  "trips": [
+    {
+      "passenger_count": 1,
+      "trip_distance": 1.2,
+      "fare_amount": 8.5,
+      "total_amount": 10.0,
+      "payment_type": 1,
+      "trip_duration_minutes": 6,
+      "trip_speed_mph": 12,
+      "pickup_hour": 9,
+      "pickup_day_of_week": "Mon",
+      "is_weekend": false
+    },
+    {
+      "passenger_count": 2,
+      "trip_distance": 3.5,
+      "fare_amount": 12.5,
+      "total_amount": 15.0,
+      "payment_type": 1,
+      "trip_duration_minutes": 10,
+      "trip_speed_mph": 20,
+      "pickup_hour": 14,
+      "pickup_day_of_week": "Fri",
+      "is_weekend": false
+    },
+    {
+      "passenger_count": 3,
+      "trip_distance": 5.0,
+      "fare_amount": 20.0,
+      "total_amount": 25.0,
+      "payment_type": 2,
+      "trip_duration_minutes": 15,
+      "trip_speed_mph": 20,
+      "pickup_hour": 18,
+      "pickup_day_of_week": "Sat",
+      "is_weekend": true
+    }
+  ]
+}
+```
+
 🐳 Docker Setup
+
 Build and Run
 docker compose build --no-cache
 docker compose up
 Access API Docs
 http://127.0.0.1:8000/docs
+
 🧪 Testing
 
 Run unit tests using pytest:

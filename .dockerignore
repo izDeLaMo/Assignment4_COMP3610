@@ -5,3 +5,9 @@ mlruns/
 *.pyc
 *.pkl
 .git/
+mlruns/
+__pycache__/
+.git/
+notebooks/
+*.ipynb
+.venv/

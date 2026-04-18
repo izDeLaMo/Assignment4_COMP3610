@@ -36,7 +36,9 @@ def test_single_prediction_success():
 # 2. Successful batch prediction
 # -----------------------------
 def test_batch_prediction_success():
-    batch_payload = [valid_payload, valid_payload]
+    batch_payload = {
+        "trips": [valid_payload, valid_payload]
+    }
 
     response = client.post("/predict/batch", json=batch_payload)
     assert response.status_code == 200
@@ -44,6 +46,11 @@ def test_batch_prediction_success():
     data = response.json()
     assert isinstance(data, list)
     assert len(data) == 2
+
+    for item in data:
+        assert "prediction" in item
+        assert "model_version" in item
+        assert "prediction_id" in item
 
 # -----------------------------
 # 3. Invalid input (missing field)
@@ -78,9 +85,12 @@ def test_edge_case_zero_distance():
     edge_payload["trip_distance"] = 0
 
     response = client.post("/predict", json=edge_payload)
+    assert response.status_code == 422
 
-    # Depending on your validation:
-    # If you enforced >0 → expect 422
-    # If allowed → expect 200
+def test_batch_limit_exceeded():
+    batch_payload = {
+        "trips": [valid_payload] * 101
+    }
 
-    assert response.status_code in [200, 422]
+    response = client.post("/predict/batch", json=batch_payload)
+    assert response.status_code == 400

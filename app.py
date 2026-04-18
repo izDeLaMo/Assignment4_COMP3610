@@ -1,4 +1,3 @@
-from duckdb import df
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
@@ -12,8 +11,8 @@ import os
 # -------------------------
 # Load model + preprocessor once
 # -------------------------
-MODEL_PATH = "models/model.pkl"
-PREPROCESSOR_PATH = "models/preprocessor.pkl"
+MODEL_PATH = os.getenv("MODEL_PATH", "models/model.pkl")
+PREPROCESSOR_PATH = os.getenv("PREPROCESSOR_PATH", "models/preprocessor.pkl")
 
 model = joblib.load(MODEL_PATH)
 preprocessor = joblib.load(PREPROCESSOR_PATH)
@@ -119,7 +118,7 @@ def predict(trip: TripInput):
 
         return {
             "prediction": round(float(pred), 2),
-            "model_version": "v1",
+            "model_version": model_version,
             "prediction_id": str(uuid.uuid4())
         }
 
@@ -131,29 +130,32 @@ def predict(trip: TripInput):
 
 
 @app.post("/predict/batch")
-def predict_batch(trips: list[TripInput]):
-    try:
-        df = pd.DataFrame([t.model_dump() for t in trips])
+def predict_batch(batch: BatchInput):
+    trips = batch.trips
 
-        df = add_features(df)
-        X = preprocessor.transform(df)
-        preds = model.predict(X)
+    if len(trips) > 100:
+        raise HTTPException(status_code=400, detail="Max 100 records allowed")
 
-        results = []
-        for p in preds:
-            results.append({
-                "prediction": round(float(p), 2),
-                "model_version": "v1",
-                "prediction_id": str(uuid.uuid4())
-            })
+    df = pd.DataFrame([t.model_dump() for t in trips])
+    df = add_features(df)
+    X = preprocessor.transform(df)
+    preds = model.predict(X)
 
-        return results
+    return [
+        {
+            "prediction": round(float(p), 2),
+            "model_version": model_version,
+            "prediction_id": str(uuid.uuid4())
+        }
+        for p in preds
+    ]
 
-    except Exception:
-        return JSONResponse(
-            status_code=500,
-            content={"error": "Batch prediction failed"}
-        )
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+@app.exception_handler(Exception)
+def global_exception_handler(request, exc):
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": "Internal server error",
+            "message": "Something went wrong"
+        }
+    )

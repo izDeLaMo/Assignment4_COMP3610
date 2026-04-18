@@ -7,3 +7,4 @@ services:
       - "8000:8000"
     environment:
       - MODEL_PATH=models/model.pkl
+      - PREPROCESSOR_PATH=models/preprocessor.pkl
